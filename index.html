@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MarineGuard AI — Intelligent Underwater Detection & Marine Monitoring</title>
+  <meta name="description" content="Autonomous marine intelligence platform utilizing side-scan sonar acoustic computer vision to detect, classify, and monitor underwater debris, ghost gear, and submerged hazards." />
+  
+  <!-- Modern Typography: Space Grotesk & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- Atmospheric background glow -->
+  <div class="bg-atmosphere"></div>
+
+  <div id="app">
+    <!-- ====================================================================
+         TOP HEADER & GLOBAL NAVIGATION
+         ==================================================================== -->
+    <header class="site-header">
+      <div class="brand-container">
+        <div class="brand-icon-wrapper">
+          <div class="brand-radar-ring"></div>
+          <!-- Sonar Hydrophone Emblem -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
+            <circle cx="12" cy="12" r="3" fill="#00f2fe"></circle>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+          </svg>
+        </div>
+        <div class="brand-text-block">
+          <div class="brand-title-row">
+            <span class="brand-name">MarineGuard AI</span>
+            <span class="brand-version-badge">SONAR-NET v4.2</span>
+          </div>
+          <span class="brand-tagline">Intelligent Underwater Detection & Marine Monitoring</span>
+        </div>
+      </div>
+
+      <!-- Center Navigation Tabs -->
+      <nav class="nav-tabs" aria-label="Main Navigation">
+        <button class="nav-tab-btn active" id="tab-sonar" data-view="view-sonar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"></path>
+          </svg>
+          Sonar Vision & Waterfall
+        </button>
+
+        <button class="nav-tab-btn" id="tab-map" data-view="view-map">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
+          </svg>
+          Bathymetric Survey Map
+        </button>
+
+        <button class="nav-tab-btn" id="tab-analytics" data-view="view-analytics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Recovery Analytics
+        </button>
+
+        <button class="nav-tab-btn" id="tab-telemetry" data-view="view-telemetry">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M16.2 7.8 12 12l-1.4-1.4"></path>
+          </svg>
+          AUV Cockpit
+        </button>
+      </nav>
+
+      <!-- Right Actions: Persona, Audio, Report Export -->
+      <div class="header-actions">
+        <!-- Persona Switcher -->
+        <div class="persona-select-wrapper" title="Switch Operator View">
+          <select id="persona-selector" class="persona-select">
+            <option value="researcher">Marine Researcher</option>
+            <option value="conservation">Conservation Team</option>
+            <option value="surveyor">Survey Engineer</option>
+            <option value="authority">Coastal Authority</option>
+          </select>
+          <svg class="persona-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <!-- Audio Sonar Ping Mute/Unmute -->
+        <button class="btn-icon active" id="btn-audio-toggle" title="Toggle Sonar Audio Pings">
+          <svg id="icon-audio-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg id="icon-audio-off" style="display:none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <!-- Custom Sonar Data Upload -->
+        <button class="btn-secondary" id="btn-open-upload" title="Ingest SSS Raw Sonar Data">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Ingest Sonar
+        </button>
+
+        <!-- Export Inspection Report -->
+        <button class="btn-primary" id="btn-export-report">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Inspection Report
+        </button>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         MISSION COMMAND OPERATIONAL TELEMETRY STRIP
+         ==================================================================== -->
+    <section class="mission-command-strip" aria-label="Mission Operational Status">
+      <div class="cmd-strip-container">
+        <!-- Mission & Status -->
+        <div class="cmd-block">
+          <span class="cmd-label">MISSION STATUS</span>
+          <div class="cmd-mission-row">
+            <span class="cmd-mission-name" id="cmd-mission-name">MG-402 | North Sea Survey</span>
+            <span class="cmd-status-pill" id="cmd-status-pill">
+              <span class="status-pulse-dot"></span>
+              SURVEY ACTIVE
+            </span>
+          </div>
+        </div>
+
+        <div class="cmd-divider"></div>
+
+        <!-- Telemetry Gauges -->
+        <div class="cmd-telemetry-group">
+          <div class="cmd-stat">
+            <span class="cmd-label">AUV</span>
+            <span class="cmd-val cyan" id="cmd-auv">NAUTILUS-04</span>
+          </div>
+          <div class="cmd-stat">
+            <span class="cmd-label">DEPTH</span>
+            <span class="cmd-val" id="cmd-depth">42.8 m</span>
+          </div>
+          <div class="cmd-stat">
+            <span class="cmd-label">SPEED</span>
+            <span class="cmd-val" id="cmd-speed">3.2 kn</span>
+          </div>
+          <div class="cmd-stat">
+            <span class="cmd-label">COVERAGE</span>
+            <span class="cmd-val" id="cmd-coverage">3.42 km²</span>
+          </div>
+          <div class="cmd-stat">
+            <span class="cmd-label">SONAR</span>
+            <span class="cmd-val" id="cmd-sonar">100 kHz</span>
+          </div>
+          <div class="cmd-stat">
+            <span class="cmd-label">AI ENGINE</span>
+            <span class="cmd-val emerald" id="cmd-ai">ONLINE</span>
+          </div>
+          <div class="cmd-stat">
+            <span class="cmd-label">DATA QUALITY</span>
+            <span class="cmd-val" id="cmd-quality">94%</span>
+          </div>
+        </div>
+
+        <div class="cmd-divider"></div>
+
+        <!-- Live UTC Timestamp -->
+        <div class="cmd-block cmd-time-block">
+          <span class="cmd-label">MISSION TIME (UTC)</span>
+          <span class="cmd-time" id="cmd-live-clock">2026-09-28 16:15:00 UTC</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 1: SIDE-SCAN SONAR VISION & WATERFALL ANALYZER
+         ==================================================================== -->
+    <main id="view-sonar" class="view-panel active">
+      <div class="sonar-view-layout">
+        <section class="sonar-main-area">
+          
+          <!-- Top Toolbar -->
+          <div class="sonar-toolbar">
+            <!-- Mission Dataset Switcher -->
+            <div class="toolbar-group">
+              <span class="toolbar-label">Dataset:</span>
+              <select id="dataset-selector" class="select-control">
+                <option value="mission-ghost-net">Mission MG-402: North Sea Ghost Nets</option>
+                <option value="mission-cargo-drums">Mission MG-719: Gulf Hazmat Drums & Cargo</option>
+                <option value="mission-shipwreck">Mission MG-883: Dover Strait Sunken Wreck</option>
+              </select>
+            </div>
+
+            <!-- Sonar Color Palette Switcher -->
+            <div class="toolbar-group">
+              <span class="toolbar-label">Palette:</span>
+              <div class="palette-pills" id="palette-selector-pills">
+                <button class="palette-btn active" data-palette="amber">Amber</button>
+                <button class="palette-btn" data-palette="oceanic">Cyan HDR</button>
+                <button class="palette-btn" data-palette="phosphor">Phosphor</button>
+                <button class="palette-btn" data-palette="copper">Copper</button>
+                <button class="palette-btn" data-palette="grayscale">Mono</button>
+              </div>
+            </div>
+
+            <!-- Confidence Threshold Slider -->
+            <div class="toolbar-group">
+              <span class="toolbar-label">AI Conf:</span>
+              <div class="slider-container">
+                <input type="range" id="confidence-slider" class="range-slider" min="0.40" max="0.95" step="0.05" value="0.50" />
+                <span id="confidence-val" class="slider-val-badge">50%</span>
+              </div>
+            </div>
+
+            <!-- Analysis Feature Toggles & START AI ANALYSIS -->
+            <div class="toolbar-group">
+              <button class="btn-primary" id="btn-start-ai-analysis" style="background:#0c2242; border-color:var(--color-nav-cyan); font-weight:700; padding:5px 12px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                START AI ANALYSIS
+              </button>
+
+              <button class="toggle-btn active" id="btn-toggle-boxes">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+                Boxes
+              </button>
+
+              <button class="toggle-btn active" id="btn-toggle-shadows">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                Shadows
+              </button>
+
+              <button class="toggle-btn" id="btn-draw-roi">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                Draw ROI
+              </button>
+
+              <button class="toggle-btn" id="btn-live-scan">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Live Sweep
+              </button>
+            </div>
+          </div>
+
+          <!-- Sonar Canvas Display -->
+          <div class="sonar-canvas-wrapper" id="canvas-container">
+            <!-- Persona Indicator Alert Banner -->
+            <div class="persona-banner" id="persona-banner">
+              <span class="persona-dot"></span>
+              <span id="persona-banner-text">OPERATOR: Marine Researcher &bull; Benthic Health Index Focus</span>
+            </div>
+
+            <canvas id="sonar-canvas"></canvas>
+
+            <!-- Floating Zoom / Pan Controls -->
+            <div class="canvas-float-controls">
+              <button class="float-btn" id="btn-zoom-in" title="Zoom In">+</button>
+              <button class="float-btn" id="btn-zoom-out" title="Zoom Out">-</button>
+              <button class="float-btn" id="btn-reset-view" title="Reset View">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Right Side HUD Inspector -->
+        <aside class="sonar-sidebar">
+          <div class="sidebar-header">
+            <span class="sidebar-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              Acoustic Anomaly Inspector
+            </span>
+            <span class="badge-critical" id="sidebar-threat-pill">CRITICAL</span>
+          </div>
+
+          <div class="sidebar-content">
+            <!-- Target Card -->
+            <div class="inspector-card critical" id="inspector-card">
+              <div class="target-header">
+                <div>
+                  <h2 class="target-title" id="target-label">Ghost Fishing Net</h2>
+                  <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 2px;" id="target-id">ANOMALY #det-gn-01</div>
+                </div>
+                <span class="target-category-badge badge-critical" id="target-category">GHOST GEAR</span>
+              </div>
+
+              <!-- Human Review & Verification Status -->
+              <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0; padding: 7px 10px; background: #061022; border-radius: 4px; border: 1px solid var(--border-hairline);">
+                <div>
+                  <div style="font-size: 8.5px; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase;">VERIFICATION STATUS</div>
+                  <div id="target-verify-status" style="font-size: 11px; font-weight: 700; color: var(--color-detected-amber); font-family: var(--font-mono); display:flex; align-items:center; gap:5px; margin-top:1px;">
+                    <span class="status-pulse-dot" style="background:var(--color-detected-amber); width:5px; height:5px;"></span>
+                    <span id="target-verify-text">AI DETECTED</span>
+                  </div>
+                </div>
+                <button class="btn-secondary" id="btn-verify-detection" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-color: rgba(56, 189, 248, 0.4); display:inline-flex; align-items:center; gap:5px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  VERIFY
+                </button>
+              </div>
+
+              <!-- Metric Grid -->
+              <div class="metric-grid-2x2">
+                <div class="metric-cell">
+                  <div class="metric-cell-label">AI Confidence</div>
+                  <div class="metric-cell-val" id="target-conf" style="color: var(--color-detected-amber);">94%</div>
+                </div>
+                <div class="metric-cell">
+                  <div class="metric-cell-label">Acoustic Shadow (Ls)</div>
+                  <div class="metric-cell-val" id="target-shadow">6.4 m</div>
+                </div>
+                <div class="metric-cell">
+                  <div class="metric-cell-label">Estimated Height</div>
+                  <div class="metric-cell-val" id="target-height">2.1 m</div>
+                </div>
+                <div class="metric-cell">
+                  <div class="metric-cell-label">Seabed Footprint</div>
+                  <div class="metric-cell-val" id="target-area">48.6 m²</div>
+                </div>
+              </div>
+
+              <!-- Photogrammetry Height Calculation Formula -->
+              <div class="formula-box">
+                <div class="formula-title">Acoustic Shadow Elevation Geometry:</div>
+                <div class="formula-math">h = (H × Ls) / (R + Ls)</div>
+                <div style="color: var(--text-muted); font-size: 10px; line-height: 1.4;">
+                  Towfish Alt (H): <span id="formula-alt" style="color: #fff;">8.2m</span> | Shadow (Ls): <span id="formula-shadow" style="color: #fff;">6.4m</span>
+                </div>
+              </div>
+
+              <!-- AI EXPLANATION SECTION: WHY WAS THIS DETECTED? -->
+              <div class="inspector-ai-explanation" style="margin-top: 12px; background: #050d1c; border: 1px solid var(--border-hairline); border-radius: var(--radius-xs); padding: 12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                  <span style="font-size: 10px; font-weight: 700; font-family: var(--font-mono); color: var(--text-pure); text-transform: uppercase; letter-spacing: 0.5px;">
+                    WHY WAS THIS DETECTED?
+                  </span>
+                  <span style="font-size: 8px; font-family: var(--font-mono); padding: 2px 5px; border-radius: 2px; background: rgba(56, 189, 248, 0.1); color: var(--color-nav-cyan); border: 1px solid rgba(56, 189, 248, 0.25);">
+                    SIMULATED AI EXPLANATION
+                  </span>
+                </div>
+
+                <!-- 5 Key Diagnostic Metrics -->
+                <div class="ai-metrics-list" style="display:flex; flex-direction:column; gap: 6px; margin-bottom: 10px; font-size: 10.5px;">
+                  <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                      <span style="color: var(--text-muted);">Acoustic Intensity</span>
+                      <span id="ai-metric-intensity" style="font-family: var(--font-mono); font-weight: 700; color: #ffffff;">92%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px;"><div id="ai-bar-intensity" class="progress-bar-fill" style="width: 92%; background: var(--color-nav-cyan);"></div></div>
+                  </div>
+
+                  <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                      <span style="color: var(--text-muted);">Shadow Signature</span>
+                      <span id="ai-metric-shadow" style="font-family: var(--font-mono); font-weight: 700; color: #ffffff;">89%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px;"><div id="ai-bar-shadow" class="progress-bar-fill" style="width: 89%; background: var(--color-nav-cyan);"></div></div>
+                  </div>
+
+                  <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                      <span style="color: var(--text-muted);">Geometry Match</span>
+                      <span id="ai-metric-geometry" style="font-family: var(--font-mono); font-weight: 700; color: #ffffff;">95%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px;"><div id="ai-bar-geometry" class="progress-bar-fill" style="width: 95%; background: var(--color-nav-cyan);"></div></div>
+                  </div>
+
+                  <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                      <span style="color: var(--text-muted);">Texture Match</span>
+                      <span id="ai-metric-texture" style="font-family: var(--font-mono); font-weight: 700; color: #ffffff;">91%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px;"><div id="ai-bar-texture" class="progress-bar-fill" style="width: 91%; background: var(--color-nav-cyan);"></div></div>
+                  </div>
+
+                  <div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                      <span style="color: var(--text-muted);">Context Match</span>
+                      <span id="ai-metric-context" style="font-family: var(--font-mono); font-weight: 700; color: #ffffff;">87%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px;"><div id="ai-bar-context" class="progress-bar-fill" style="width: 87%; background: var(--color-nav-cyan);"></div></div>
+                  </div>
+                </div>
+
+                <!-- Overall Confidence Row -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 8px; background: #030814; border-radius: 3px; border: 1px solid var(--border-hairline); margin-bottom: 8px;">
+                  <span style="font-size: 9.5px; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase;">OVERALL AI CONFIDENCE</span>
+                  <span id="ai-metric-overall" style="font-size: 13px; font-family: var(--font-mono); font-weight: 800; color: var(--color-detected-amber);">94%</span>
+                </div>
+
+                <!-- Explanation Text -->
+                <p id="ai-explanation-text" style="font-size: 10.5px; color: var(--text-muted); line-height: 1.45; margin: 0;">
+                  Detected because the acoustic return shows a strong elongated signature with a persistent shadow pattern consistent with a suspended or seabed-contact object.
+                </p>
+              </div>
+
+              <!-- Material & Impact -->
+              <div style="margin-top: 12px; font-size: 11.5px; display: flex; flex-direction: column; gap: 7px;">
+                <div>
+                  <span style="color: var(--text-dim); font-size: 9.5px; text-transform: uppercase; font-family: var(--font-mono);">Material Composition:</span>
+                  <div id="target-material" style="color: var(--text-main); font-weight: 500;">Nylon monofilament / braided synthetic polymer</div>
+                </div>
+                <div>
+                  <span style="color: var(--text-dim); font-size: 9.5px; text-transform: uppercase; font-family: var(--font-mono);">Environmental Impact:</span>
+                  <div id="target-impact" style="color: var(--text-muted); line-height: 1.4;">Severe: Ongoing marine life entrapment hazard; microplastic leaching</div>
+                </div>
+                <div>
+                  <span style="color: var(--text-dim); font-size: 9.5px; text-transform: uppercase; font-family: var(--font-mono);">Recovery Protocol:</span>
+                  <div id="target-recovery" style="color: var(--color-alert-red); font-weight: 600;">P1 - Immediate ROV Retrieval Required</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Detections Register List -->
+            <div>
+              <div class="detections-section-title" style="margin-bottom: 10px;">
+                <span>Detected Targets in Swath</span>
+                <span id="target-count-badge" style="color: var(--accent-cyan); font-family: var(--font-mono);">3 OBJECTS</span>
+              </div>
+              <div class="detection-list" id="detection-items-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Bathymetry quick stats -->
+            <div style="background: rgba(10, 20, 38, 0.4); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px; font-size: 11px;">
+              <div style="font-weight: bold; color: var(--accent-blue); margin-bottom: 8px; text-transform: uppercase;">Transect Environmental Metrics</div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--text-muted);">
+                <span>Seabed Matrix:</span>
+                <span id="env-seabed" style="color: #fff;">Glacial Sand & Rock</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--text-muted);">
+                <span>Water Temp:</span>
+                <span id="env-temp" style="color: #fff;">11.4 °C</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; color: var(--text-muted);">
+                <span>Salinity:</span>
+                <span id="env-salinity" style="color: #fff;">34.8 PSU</span>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- ====================================================================
+         VIEW 2: GEOSPATIAL BATHYMETRIC MAP & AUV TRACKER
+         ==================================================================== -->
+    <section id="view-map" class="view-panel">
+      <div class="map-view-layout">
+        <div class="map-canvas-container">
+          <!-- Floating Category Filter -->
+          <div class="map-floating-filters" id="map-category-filters">
+            <button class="map-filter-btn active" data-filter="all">All Targets (18)</button>
+            <button class="map-filter-btn" data-filter="ghost_gear">Ghost Nets (7)</button>
+            <button class="map-filter-btn" data-filter="plastics">Marine Plastics (4)</button>
+            <button class="map-filter-btn" data-filter="hazardous">Hazardous Drums (3)</button>
+            <button class="map-filter-btn" data-filter="containers">Cargo Containers (2)</button>
+            <button class="map-filter-btn" data-filter="wrecks">Shipwrecks (2)</button>
+          </div>
+
+          <canvas id="map-canvas"></canvas>
+        </div>
+
+        <!-- Map Sidebar Information -->
+        <aside class="map-sidebar">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">
+              Geospatial Mission Tracker
+            </div>
+            <span class="brand-version-badge">GPS RTK FIX</span>
+          </div>
+
+          <!-- Active Mission Card -->
+          <div class="inspector-card" id="map-mission-card">
+            <h3 style="font-size: 14px; color: #fff; margin-bottom: 4px;" id="map-mission-name">Mission Alpha-402</h3>
+            <div style="font-size: 11px; color: var(--accent-cyan); font-family: var(--font-mono); margin-bottom: 12px;" id="map-mission-coords">54° 42' 18" N, 02° 15' 44" E</div>
+            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;" id="map-mission-summary">
+              Large derelict commercial gillnet tangled across rocky seabed outcrop. High risk of continuous ghost-fishing mortality.
+            </div>
+
+            <div style="margin-top: 14px;">
+              <button class="btn-primary" style="width: 100%; justify-content: center;" id="btn-jump-to-sonar">
+                Switch to Sonar Vision
+              </button>
+            </div>
+          </div>
+
+          <!-- AUV Live Telemetry Status -->
+          <div style="background: rgba(10, 20, 38, 0.6); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px;">Autonomous AUV Nautilus-X4 Status</div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+              <span style="color: var(--text-muted);">Current Waypoint:</span>
+              <span style="color: var(--accent-cyan); font-family: var(--font-mono);">WP-03 / 08</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+              <span style="color: var(--text-muted);">Swath Coverage:</span>
+              <span style="color: #fff; font-family: var(--font-mono);">100m Swath Corridor</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+              <span style="color: var(--text-muted);">Acoustic Chirp Rate:</span>
+              <span style="color: #fff; font-family: var(--font-mono);">12.5 pings/sec</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <span style="color: var(--text-muted);">Battery Autonomy:</span>
+              <span style="color: var(--accent-emerald); font-family: var(--font-mono);">78% (6.4 hrs remaining)</span>
+            </div>
+          </div>
+
+        </aside>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: ENVIRONMENTAL IMPACT & RECOVERY ANALYTICS
+         ==================================================================== -->
+    <section id="view-analytics" class="view-panel">
+      <div class="analytics-view-layout">
+        
+        <div class="analytics-header-row">
+          <div>
+            <h1 class="analytics-title">Environmental Impact & Marine Debris Analytics</h1>
+            <p class="analytics-sub">Automated quantitative assessment derived from multi-mission side-scan sonar acoustic passes.</p>
+          </div>
+          <button class="btn-secondary" id="btn-export-csv">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export Hydrographic CSV Log
+          </button>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="stats-kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Seabed Pollution Index</div>
+            <div class="kpi-val cyan">68.4 <span style="font-size: 14px; color: var(--text-muted);">/100</span></div>
+            <div class="kpi-trend">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+              High Anthropogenic Presence
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">Derelict Ghost Gear Mass</div>
+            <div class="kpi-val amber">1,840 kg</div>
+            <div class="kpi-trend" style="color: var(--accent-coral);">
+              4 Active Entanglement Zones
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">Hazardous Drums / Hazmat</div>
+            <div class="kpi-val coral">8 Units</div>
+            <div class="kpi-trend" style="color: var(--accent-coral);">
+              Immediate Quarantine Req.
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">Seafloor Area Surveyed</div>
+            <div class="kpi-val emerald">3.42 km²</div>
+            <div class="kpi-trend">
+              100% Swath Overlap (IHO S-44)
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Analytics Breakdown -->
+        <div class="analytics-main-grid">
+          <!-- Debris Breakdown by Category -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Acoustic Classification Composition</div>
+              <span style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">CONFIDENCE &gt; 85%</span>
+            </div>
+
+            <div class="progress-list">
+              <div class="progress-item">
+                <div class="progress-meta">
+                  <span>Ghost Fishing Nets & Heavy Lines</span>
+                  <span style="color: var(--accent-amber);">39% (7 Anomaly Clusters)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 39%; background: var(--accent-amber);"></div>
+                </div>
+              </div>
+
+              <div class="progress-item">
+                <div class="progress-meta">
+                  <span>Synthetic Plastics & Cordage</span>
+                  <span style="color: var(--accent-blue);">22% (4 Detections)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 22%; background: var(--accent-blue);"></div>
+                </div>
+              </div>
+
+              <div class="progress-item">
+                <div class="progress-meta">
+                  <span>Hazardous Metal Drums & Chemical Receptacles</span>
+                  <span style="color: var(--accent-coral);">17% (3 Targets)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 17%; background: var(--accent-coral);"></div>
+                </div>
+              </div>
+
+              <div class="progress-item">
+                <div class="progress-meta">
+                  <span>Submerged ISO Shipping Containers</span>
+                  <span style="color: #ec4899;">11% (2 Objects)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 11%; background: #ec4899;"></div>
+                </div>
+              </div>
+
+              <div class="progress-item">
+                <div class="progress-meta">
+                  <span>Sunken Shipwrecks & Structural Obstructions</span>
+                  <span style="color: var(--accent-purple);">11% (2 Sites)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 11%; background: var(--accent-purple);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ROV Recovery Priority Matrix -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Action Priority Matrix</div>
+              <span class="badge-critical">ACTION REQ</span>
+            </div>
+
+            <div class="priority-matrix">
+              <div class="priority-tier p1">
+                <div class="tier-title" style="color: var(--accent-coral);">
+                  <span>Tier 1: Immediate ROV Extraction</span>
+                  <span>4 Targets</span>
+                </div>
+                <div class="tier-desc">Active ghost nets causing marine mammal entanglement and corroding chemical drum clusters.</div>
+              </div>
+
+              <div class="priority-tier p2">
+                <div class="tier-title" style="color: var(--accent-amber);">
+                  <span>Tier 2: Scheduled Salvage</span>
+                  <span>6 Targets</span>
+                </div>
+                <div class="tier-desc">Submerged cargo containers obstructing trawler grounds and dense plastic debris heaps.</div>
+              </div>
+
+              <div class="priority-tier p3">
+                <div class="tier-title" style="color: var(--accent-blue);">
+                  <span>Tier 3: Navigational Demarcation</span>
+                  <span>8 Targets</span>
+                </div>
+                <div class="tier-desc">Sunken shipwreck structures and anchor debris marked for maritime charts (Notice to Mariners).</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 4: AUV TELEMETRY & HARDWARE COCKPIT
+         ==================================================================== -->
+    <section id="view-telemetry" class="view-panel">
+      <div class="telemetry-view-layout">
+        
+        <div class="analytics-header-row">
+          <div>
+            <h1 class="analytics-title">AUV Hydrographic Cockpit & Transducer Diagnostics</h1>
+            <p class="analytics-sub">Real-time acoustic transducer sensor health, attitude gyro, and subsea sound velocity profile.</p>
+          </div>
+          <div class="brand-version-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981;">
+            ALL TRANSDUCERS NOMINAL
+          </div>
+        </div>
+
+        <div class="cockpit-grid">
+          <!-- Gyro & Attitude -->
+          <div class="cockpit-instrument">
+            <div class="instrument-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Attitude & Towfish Gyroscope
+            </div>
+
+            <div class="gyro-visualizer">
+              <div style="text-align: center;">
+                <div class="gyro-dial">
+                  <div class="gyro-needle" style="transform: rotate(195deg);"></div>
+                  <div class="gyro-label">195°</div>
+                </div>
+                <div style="font-size: 10px; color: var(--text-dim); margin-top: 6px;">HEADING</div>
+              </div>
+
+              <div style="text-align: center;">
+                <div class="gyro-dial">
+                  <div class="gyro-needle" style="transform: rotate(2deg); background: #10b981;"></div>
+                  <div class="gyro-label">+2.1°</div>
+                </div>
+                <div style="font-size: 10px; color: var(--text-dim); margin-top: 6px;">PITCH</div>
+              </div>
+
+              <div style="text-align: center;">
+                <div class="gyro-dial">
+                  <div class="gyro-needle" style="transform: rotate(-1deg); background: #38bdf8;"></div>
+                  <div class="gyro-label">-0.8°</div>
+                </div>
+                <div style="font-size: 10px; color: var(--text-dim); margin-top: 6px;">ROLL</div>
+              </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-muted); line-height: 1.5; text-align: center;">
+              Active motion compensation enabled. Heave and yaw corrections applied to waterfall line buffers.
+            </div>
+          </div>
+
+          <!-- Acoustic Transducers -->
+          <div class="cockpit-instrument">
+            <div class="instrument-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M2 6h20M2 18h20"></path></svg>
+              Dual-Chirp Transducer Array
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Port Transducer (450 kHz):</span>
+                <span style="color: var(--accent-emerald); font-weight: bold;">ONLINE (100% SNR)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Starboard Transducer (450 kHz):</span>
+                <span style="color: var(--accent-emerald); font-weight: bold;">ONLINE (99.8% SNR)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">High-Res 900 kHz Channel:</span>
+                <span style="color: var(--accent-cyan); font-weight: bold;">STANDBY / READY</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Pulse Repetition Freq (PRF):</span>
+                <span style="color: #fff; font-family: var(--font-mono);">12.5 Hz (80ms listen)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sound Velocity Profile (SVP) -->
+          <div class="cockpit-instrument">
+            <div class="instrument-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              Oceanographic Water Column & SVP
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Sound Velocity (c):</span>
+                <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: bold;">1,492.4 m/s</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Water Temperature (T):</span>
+                <span style="color: #fff; font-family: var(--font-mono);">11.4 °C</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Salinity (S):</span>
+                <span style="color: #fff; font-family: var(--font-mono);">34.8 PSU</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(7, 14, 28, 0.6); border-radius: 4px;">
+                <span style="color: var(--text-muted);">Hydrostatic Pressure:</span>
+                <span style="color: #fff; font-family: var(--font-mono);">3.85 bar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MODAL 1: HYDROGRAPHIC INSPECTION REPORT PREVIEW & EXPORT
+         ==================================================================== -->
+    <div class="modal-overlay" id="modal-report">
+      <div class="modal-container">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Hydrographic Inspection Report & Export
+          </div>
+          <button class="btn-icon" id="btn-close-report" title="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="modal-body" id="modal-report-content">
+          <!-- Dynamically populated report HTML -->
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" id="btn-download-geojson">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon></svg>
+            Download GeoJSON
+          </button>
+          <button class="btn-secondary" id="btn-download-csv">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download CSV Log
+          </button>
+          <button class="btn-primary" id="btn-print-report">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print / Save to PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 2: CUSTOM SIDE-SCAN SONAR DATA INGESTION
+         ==================================================================== -->
+    <div class="modal-overlay" id="modal-upload">
+      <div class="modal-container" style="max-width: 600px;">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Ingest Side-Scan Sonar Imagery
+          </div>
+          <button class="btn-icon" id="btn-close-upload" title="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="dropzone" id="sonar-dropzone">
+            <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">Drag & Drop Hydrographic Sonar File</h4>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+              Supports Side-Scan Waterfall recordings (.XTF, .JSF, GeoTIFF, PNG, JPG)
+            </p>
+            <input type="file" id="sonar-file-input" accept="image/*" style="display: none;" />
+            <button class="btn-primary" type="button" onclick="document.getElementById('sonar-file-input').click()">
+              Browse Local Files
+            </button>
+          </div>
+
+          <div style="margin-top: 18px; font-size: 11px; color: var(--text-dim); line-height: 1.5;">
+            * Ingested imagery undergoes real-time acoustic shadow edge analysis, nadir track normalization, and convolutional object detection via MarineGuard SonarNet-v4.2.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 3: REALISTIC SONAR AI ANALYSIS PROCESSING SEQUENCE
+         ==================================================================== -->
+    <div class="modal-overlay" id="modal-ai-analysis">
+      <div class="modal-container" style="max-width: 620px;">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="status-pulse-dot" style="background:var(--color-nav-cyan); width:6px; height:6px;"></span>
+            ACOUSTIC INFERENCE PIPELINE — SONAR-NET v4.2
+          </div>
+          <button class="btn-icon" id="btn-close-analysis-modal" title="Dismiss" style="display:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="padding: 22px;">
+          <!-- Overall Progress Bar -->
+          <div style="margin-bottom: 18px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-family:var(--font-mono); margin-bottom:7px;">
+              <span id="analysis-step-title" style="color:#ffffff; font-weight:600;">01 — Loading sonar dataset</span>
+              <span id="analysis-progress-pct" style="color:var(--color-nav-cyan); font-weight:700;">10%</span>
+            </div>
+            <div class="progress-bar-bg" style="height: 6px; background:#040916;">
+              <div id="analysis-progress-bar" class="progress-bar-fill" style="width: 10%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.25s ease;"></div>
+            </div>
+          </div>
+
+          <!-- 10 Step Stepper List -->
+          <div class="analysis-steps-list" id="analysis-steps-container" style="display:flex; flex-direction:column; gap:5px; font-family:var(--font-mono); font-size:11px;">
+            <!-- Generated dynamically in main.js -->
+          </div>
+
+          <!-- Analysis Complete Summary Card -->
+          <div id="analysis-complete-card" style="display:none; margin-top:16px; background:#040c1a; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:16px; animation: modal-enter 0.2s ease-out;">
+            <div style="display:flex; align-items:center; gap:8px; color:var(--color-status-emerald); font-weight:700; font-size:12.5px; margin-bottom:12px; font-family:var(--font-mono);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              ANALYSIS COMPLETE
+            </div>
+            <div class="metric-grid-2x2" style="margin-bottom:0;">
+              <div class="metric-cell">
+                <div class="metric-cell-label">Images Processed</div>
+                <div class="metric-cell-val" id="metric-processed">1 Swath GeoTIFF (24.8k pings)</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-cell-label">Objects Detected</div>
+                <div class="metric-cell-val amber" id="metric-detected">4 Anomaly Clusters</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-cell-label">High-Confidence</div>
+                <div class="metric-cell-val" id="metric-high-conf">3 Targets (≥88%)</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-cell-label">Processing Time</div>
+                <div class="metric-cell-val" id="metric-time">1.84 s</div>
+              </div>
+            </div>
+            <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">
+              <span>DATA QUALITY: <strong style="color:var(--color-status-emerald);">94.2% SNR</strong></span>
+              <button class="btn-primary" id="btn-view-revealed-detections" style="padding:6px 14px; font-weight:700;">
+                VIEW DETECTIONS →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 4: HUMAN OPERATOR VERIFICATION CONFIRMATION
+         ==================================================================== -->
+    <div class="modal-overlay" id="modal-confirm-verify">
+      <div class="modal-container" style="max-width: 440px;">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Confirm Hydrographic Detection
+          </div>
+          <button class="btn-icon" id="btn-close-verify-modal" title="Cancel">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 18px;">
+          <p style="font-size: 13px; color: #ffffff; font-weight: 600; margin-bottom: 6px;">Confirm this detection?</p>
+          <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px;">
+            Validate that this anomaly meets hydrographic survey classification standards and should be logged in the official marine hazard register.
+          </p>
+          <div style="background: #040916; border: 1px solid var(--border-hairline); border-radius: 4px; padding: 10px; font-size: 11px; font-family: var(--font-mono); color: var(--text-main);">
+            <div>TARGET: <strong id="verify-modal-target-name" style="color: var(--color-detected-amber);">Ghost Fishing Net</strong></div>
+            <div style="margin-top: 3px;">DETECTION ID: <span id="verify-modal-target-id" style="color: var(--color-nav-cyan);">det-gn-01</span></div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 12px 18px; display:flex; justify-content:flex-end; gap:8px;">
+          <button class="btn-secondary" id="btn-cancel-verify">CANCEL</button>
+          <button class="btn-primary" id="btn-confirm-detection-action" style="background:#059669; border-color:#10b981; color:#fff;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            CONFIRM DETECTION
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

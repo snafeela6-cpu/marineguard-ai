@@ -1,0 +1,1432 @@
+/* ==========================================================================
+   MarineGuard AI — Deep Ocean Operations Interface
+   Design Philosophy: Precision + Trust + Marine Science + Operational Command
+   ========================================================================== */
+
+:root {
+  /* Deep Ocean Operations Color Palette */
+  --bg-void: #020610;               /* Absolute deep abyss base */
+  --bg-ocean: #050c1a;              /* Primary oceanic background */
+  --bg-surface: #081324;            /* Operations panels & sidebars */
+  --bg-card: #0b1930;               /* Hydrographic data cards */
+  --bg-elevated: #0f213e;           /* Elevated interactive elements */
+
+  /* Operational Accent Standards */
+  --color-nav-cyan: #38bdf8;        /* Soft cyan for navigation, AUV position & tracks */
+  --color-cyan-glow: rgba(56, 189, 248, 0.15);
+  --color-detected-amber: #f59e0b;  /* Amber for detected objects & targets */
+  --color-amber-soft: rgba(245, 158, 11, 0.15);
+  --color-alert-red: #ef4444;       /* Red STRICTLY for critical alerts & hazards */
+  --color-red-soft: rgba(239, 68, 68, 0.15);
+  --color-status-emerald: #10b981;  /* Operational status & nominal sensors */
+  --color-emerald-soft: rgba(16, 185, 129, 0.15);
+
+  /* Technical Hairlines & Borders */
+  --border-hairline: rgba(56, 189, 248, 0.12);
+  --border-subtle: rgba(56, 189, 248, 0.22);
+  --border-active: #38bdf8;
+  --border-amber: #f59e0b;
+  --border-alert: #ef4444;
+
+  /* Typography & Information Hierarchy */
+  --text-pure: #ffffff;
+  --text-main: #e2e8f0;
+  --text-muted: #8da2be;
+  --text-dim: #4b6282;
+
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  /* Subtle technical shadows */
+  --shadow-subtle: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-panel: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-void);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle Technical Seabed Graticule Background */
+.bg-atmosphere {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    linear-gradient(180deg, #050c1a 0%, #020610 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(56, 189, 248, 0.04) 0%, transparent 60%);
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   TOP HEADER & OPERATIONAL BRANDING
+   ========================================================================== */
+.site-header {
+  height: 60px;
+  background: #040916;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon-wrapper {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #09152a;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.brand-radar-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-sm);
+  animation: radar-pulse 3.5s infinite ease-out;
+}
+
+@keyframes radar-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+.brand-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-pure);
+}
+
+.brand-version-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: rgba(56, 189, 248, 0.08);
+  color: var(--color-nav-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.brand-tagline {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* Nav Tabs — Clean Scientific Operational Style */
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #060e1d;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hairline);
+}
+
+.nav-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-tab-btn:hover {
+  color: var(--text-pure);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-tab-btn.active {
+  color: var(--text-pure);
+  background: #0c1a32;
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: inset 0 1px 0 rgba(56, 189, 248, 0.3);
+}
+
+.nav-tab-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-nav-cyan);
+}
+
+/* Header Right Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.persona-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.persona-select {
+  appearance: none;
+  background: #081427;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 28px 6px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.persona-select:focus, .persona-select:hover {
+  border-color: var(--color-nav-cyan);
+}
+
+.persona-caret {
+  position: absolute;
+  right: 8px;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #081427;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-icon:hover {
+  color: var(--text-pure);
+  border-color: var(--border-subtle);
+}
+
+.btn-icon.active {
+  color: var(--color-nav-cyan);
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  background: #0c203e;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #112a52;
+  border-color: var(--color-nav-cyan);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: #081427;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--border-subtle);
+  color: var(--text-pure);
+}
+
+/* ==========================================================================
+   MISSION COMMAND OPERATIONAL TELEMETRY STRIP
+   ========================================================================== */
+.mission-command-strip {
+  background: #030814;
+  border-bottom: 1px solid var(--border-hairline);
+  padding: 8px 24px;
+  font-size: 11.5px;
+  z-index: 90;
+}
+
+.cmd-strip-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1920px;
+  margin: 0 auto;
+  gap: 16px;
+}
+
+.cmd-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmd-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  line-height: 1.2;
+}
+
+.cmd-mission-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.cmd-mission-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: -0.1px;
+}
+
+.cmd-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: rgba(16, 185, 129, 0.08);
+  color: var(--color-status-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-status-emerald);
+  box-shadow: 0 0 6px var(--color-status-emerald);
+  animation: pulse-slow 2s infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.9); }
+}
+
+.cmd-divider {
+  width: 1px;
+  height: 26px;
+  background: var(--border-hairline);
+}
+
+.cmd-telemetry-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cmd-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmd-val {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-pure);
+  margin-top: 1px;
+}
+
+.cmd-val.cyan { color: var(--color-nav-cyan); }
+.cmd-val.emerald { color: var(--color-status-emerald); }
+.cmd-val.amber { color: var(--color-detected-amber); }
+
+.cmd-time-block {
+  text-align: right;
+  min-width: 180px;
+}
+
+.cmd-time {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* ==========================================================================
+   VIEW CONTAINERS
+   ========================================================================== */
+.view-panel {
+  display: none;
+  flex: 1;
+}
+
+.view-panel.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   HERO VISUAL: SIDE-SCAN SONAR WATERFALL & TARGET INTELLIGENCE
+   ========================================================================== */
+.sonar-view-layout {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 108px);
+  overflow: hidden;
+  background: var(--bg-void);
+}
+
+.sonar-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #01040a;
+}
+
+/* Operational Sonar Toolbar */
+.sonar-toolbar {
+  height: 48px;
+  background: #040a16;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  gap: 14px;
+  z-index: 10;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.select-control {
+  background: #081324;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  color: var(--text-pure);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.select-control:focus {
+  border-color: var(--color-nav-cyan);
+}
+
+/* Palette Pills */
+.palette-pills {
+  display: flex;
+  background: #020713;
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-hairline);
+  gap: 2px;
+}
+
+.palette-btn {
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.palette-btn:hover {
+  color: var(--text-pure);
+}
+
+.palette-btn.active {
+  background: #0e2242;
+  color: var(--color-nav-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* Confidence Threshold Slider */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.range-slider {
+  appearance: none;
+  width: 75px;
+  height: 3px;
+  border-radius: 2px;
+  background: #14233c;
+  outline: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-nav-cyan);
+  cursor: pointer;
+  border: 1px solid #ffffff;
+}
+
+.slider-val-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-nav-cyan);
+  min-width: 32px;
+}
+
+/* Tool Toggles */
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  background: #081324;
+  border: 1px solid var(--border-hairline);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn:hover {
+  color: var(--text-pure);
+  border-color: var(--border-subtle);
+}
+
+.toggle-btn.active {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: var(--color-nav-cyan);
+  color: var(--color-nav-cyan);
+}
+
+/* Sonar Canvas Container — HERO VIEWPORT */
+.sonar-canvas-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000207;
+}
+
+#sonar-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Canvas Floating Controls */
+.canvas-float-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 20;
+}
+
+.float-btn {
+  width: 32px;
+  height: 32px;
+  background: #071224;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.15s;
+}
+
+.float-btn:hover {
+  border-color: var(--color-nav-cyan);
+  color: var(--color-nav-cyan);
+}
+
+/* Persona Operational Banner */
+.persona-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(4, 10, 22, 0.92);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 14px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  z-index: 15;
+  box-shadow: var(--shadow-subtle);
+}
+
+.persona-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-nav-cyan);
+}
+
+/* ==========================================================================
+   RIGHT OPERATIONAL TARGET INTELLIGENCE SIDEBAR
+   ========================================================================== */
+.sonar-sidebar {
+  width: 390px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.sidebar-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #050e1c;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-pure);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sidebar-content {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Technical Inspector Cards */
+.inspector-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.inspector-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--color-detected-amber);
+}
+
+.inspector-card.critical::before { background: var(--color-alert-red); }
+.inspector-card.high::before { background: var(--color-detected-amber); }
+.inspector-card.warning::before { background: #eab308; }
+
+.target-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.target-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: -0.2px;
+}
+
+.target-category-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-family: var(--font-mono);
+}
+
+.badge-critical {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-alert-red);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-high {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-detected-amber);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-warning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+}
+
+.badge-routine {
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--color-nav-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+/* Metric Key-Value Grid */
+.metric-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.metric-cell {
+  background: #061022;
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-hairline);
+}
+
+.metric-cell-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.metric-cell-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-pure);
+  margin-top: 2px;
+}
+
+/* Shadow Photogrammetry Formula Box */
+.formula-box {
+  background: #050d1c;
+  border: 1px solid var(--border-hairline);
+  border-left: 2px solid var(--color-nav-cyan);
+  border-radius: var(--radius-xs);
+  padding: 10px;
+  font-size: 11px;
+}
+
+.formula-title {
+  color: var(--color-nav-cyan);
+  font-weight: 700;
+  font-size: 10.5px;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.formula-math {
+  font-family: var(--font-mono);
+  background: #020610;
+  padding: 3px 6px;
+  border-radius: 3px;
+  color: var(--text-pure);
+  display: inline-block;
+  margin: 3px 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Active Detections List */
+.detections-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.detection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detection-item-card {
+  background: #071224;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detection-item-card:hover {
+  background: #0b1932;
+  border-color: var(--border-subtle);
+}
+
+.detection-item-card.selected {
+  background: #0d2040;
+  border-color: var(--color-detected-amber);
+}
+
+.det-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.det-item-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-pure);
+}
+
+.det-item-meta {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: 1px;
+}
+
+.det-item-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-detected-amber);
+}
+
+/* ==========================================================================
+   VIEW 2: GEOSPATIAL MAP & AUV TRACKER
+   ========================================================================== */
+.map-view-layout {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 108px);
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-void);
+}
+
+.map-canvas-container {
+  flex: 1;
+  position: relative;
+  background: #020610;
+}
+
+#map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Map Floating Filter Bar */
+.map-floating-filters {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: flex;
+  gap: 6px;
+  background: rgba(4, 10, 22, 0.92);
+  padding: 4px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-subtle);
+  z-index: 10;
+  box-shadow: var(--shadow-subtle);
+}
+
+.map-filter-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.map-filter-btn:hover {
+  color: var(--text-pure);
+}
+
+.map-filter-btn.active {
+  background: #0c1c38;
+  color: var(--color-nav-cyan);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.map-sidebar {
+  width: 360px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   VIEW 3: ENVIRONMENTAL IMPACT & RECOVERY ANALYTICS
+   ========================================================================== */
+.analytics-view-layout {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.analytics-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.analytics-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-pure);
+}
+
+.analytics-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.stats-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  position: relative;
+  box-shadow: var(--shadow-subtle);
+}
+
+.kpi-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-pure);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+.kpi-val.cyan { color: var(--color-nav-cyan); }
+.kpi-val.coral { color: var(--color-alert-red); }
+.kpi-val.amber { color: var(--color-detected-amber); }
+.kpi-val.emerald { color: var(--color-status-emerald); }
+
+.kpi-trend {
+  font-size: 10.5px;
+  color: var(--color-status-emerald);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.analytics-main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-pure);
+  letter-spacing: 0.4px;
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.progress-bar-bg {
+  height: 6px;
+  background: #050d1c;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.priority-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.priority-tier {
+  padding: 10px 12px;
+  background: #061124;
+  border-radius: var(--radius-xs);
+  border-left: 3px solid var(--color-status-emerald);
+  border-top: 1px solid var(--border-hairline);
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.priority-tier.p1 { border-left-color: var(--color-alert-red); }
+.priority-tier.p2 { border-left-color: var(--color-detected-amber); }
+.priority-tier.p3 { border-left-color: var(--color-nav-cyan); }
+
+.tier-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tier-desc {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   VIEW 4: AUV TELEMETRY & HARDWARE COCKPIT
+   ========================================================================== */
+.telemetry-view-layout {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cockpit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.cockpit-instrument {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.instrument-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-nav-cyan);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+}
+
+.gyro-visualizer {
+  display: flex;
+  justify-content: space-around;
+  margin: 14px 0;
+}
+
+.gyro-dial {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #040916;
+}
+
+.gyro-needle {
+  position: absolute;
+  width: 2px;
+  height: 36px;
+  background: var(--color-nav-cyan);
+  top: 4px;
+  transform-origin: bottom center;
+  transition: transform 0.3s ease;
+}
+
+.gyro-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   MODALS (REPORT PREVIEW & UPLOAD MODAL)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(2, 6, 16, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-container {
+  background: #060e1d;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  max-width: 960px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #040916;
+}
+
+.modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-pure);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #040916;
+}
+
+.dropzone {
+  border: 2px dashed rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 36px 20px;
+  text-align: center;
+  background: #040a17;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--color-nav-cyan);
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.dropzone-icon {
+  width: 42px;
+  height: 42px;
+  color: var(--color-nav-cyan);
+  margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .cmd-telemetry-group {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mission-command-strip {
+    padding: 8px 16px;
+  }
+  .cmd-strip-container {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sonar-view-layout, .map-view-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .sonar-canvas-wrapper, .map-canvas-container {
+    height: 520px;
+  }
+  .sonar-sidebar, .map-sidebar {
+    width: 100%;
+    height: auto;
+  }
+  .stats-kpi-grid, .cockpit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .analytics-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .site-header {
+    height: auto;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand-tagline {
+    display: none;
+  }
+  .stats-kpi-grid, .cockpit-grid {
+    grid-template-columns: 1fr;
+  }
+  .sonar-toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px;
+  }
+}
+
+/* ==========================================================================
+   AI ANALYSIS PROCESSING STEPPER & REVEAL ANIMATIONS
+   ========================================================================== */
+.analysis-step-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: #040916;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+}
+
+.analysis-step-item.active {
+  background: #081730;
+  border-color: var(--color-nav-cyan);
+  color: #ffffff;
+}
+
+.analysis-step-item.done {
+  background: #051326;
+  border-color: rgba(16, 185, 129, 0.35);
+  color: var(--color-status-emerald);
+}
+
+.step-status-icon {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Progressive Detection Reveal Animation */
+.detection-item-card.reveal {
+  animation: reveal-slide 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes reveal-slide {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
