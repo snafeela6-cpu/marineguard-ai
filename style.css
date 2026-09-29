@@ -1430,3 +1430,471 @@ body {
     transform: translateX(0);
   }
 }
+
+/* ==========================================================================
+   SONAR ANALYSIS — INGEST SONAR DATA (ENTERPRISE DASHBOARD REDESIGN)
+   ========================================================================== */
+
+.ingest-view-layout {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header */
+.ingest-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ingest-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+}
+
+.ingest-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Balanced 2-Column Grid */
+.ingest-panels-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .ingest-panels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Common Card Styling */
+.ingest-card {
+  background: #060e1e;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ingest-card .panel-header {
+  padding: 12px 18px;
+  background: #040916;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.status-badge-clean {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: var(--color-nav-cyan);
+}
+
+.status-badge-clean.ready {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: var(--color-status-emerald);
+}
+
+.ingest-card .panel-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+/* Upload Box */
+.sonar-upload-box {
+  border: 1.5px dashed rgba(56, 189, 248, 0.28);
+  border-radius: var(--radius-sm);
+  background: rgba(4, 10, 24, 0.5);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.sonar-upload-box:hover,
+.sonar-upload-box.dragover {
+  border-color: var(--color-nav-cyan);
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.upload-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-nav-cyan);
+  margin-bottom: 8px;
+}
+
+.upload-main-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-pure);
+}
+
+.upload-or-text {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+  margin: 4px 0 8px;
+}
+
+.btn-browse-file {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  background: #0a1930;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-browse-file:hover {
+  background: #0f2444;
+  border-color: var(--color-nav-cyan);
+}
+
+.upload-supported-text {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+/* Form Field */
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-field-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-field-input {
+  width: 100%;
+  background: #030814;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-field-input:focus {
+  border-color: var(--color-nav-cyan);
+}
+
+/* Selected File Card */
+.selected-file-card {
+  background: #040916;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-card-icon {
+  color: var(--color-nav-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.file-card-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-card-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-card-size {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.btn-remove-file {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.btn-remove-file:hover {
+  color: var(--color-alert-red);
+}
+
+/* Ingest Progress */
+.ingest-progress-box {
+  background: #030814;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+}
+
+.progress-box-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.progress-step-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.progress-step-pct {
+  color: var(--color-nav-cyan);
+  font-weight: 600;
+}
+
+.progress-track {
+  height: 4px;
+  background: #081427;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-indicator {
+  height: 100%;
+  background: var(--color-nav-cyan);
+  transition: width 0.25s ease;
+}
+
+/* Action Wrap */
+.panel-action-wrap {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-primary-ingest {
+  width: 100%;
+  background: #0c203e;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.btn-primary-ingest:hover {
+  background: #112a52;
+  border-color: var(--color-nav-cyan);
+}
+
+.btn-primary-ingest:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-proceed-next {
+  background: #062a24;
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #ffffff;
+}
+
+.btn-proceed-next:hover {
+  background: #093b33;
+  border-color: var(--color-status-emerald);
+}
+
+/* RIGHT CARD: Sonar Data Preview Frame */
+.sonar-preview-frame {
+  position: relative;
+  width: 100%;
+  height: 330px;
+  background: #02050e;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.sonar-preview-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Three Compact Metric Cards */
+.metric-triad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.compact-metric-card {
+  background: #040916;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-triad-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-triad-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 2px;
+}
+
+/* Active Ingested Survey Banner in AI Detection View */
+.active-ingest-banner {
+  background: #040916;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xs);
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 11.5px;
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.banner-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-status-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.banner-text {
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.banner-text strong {
+  color: #ffffff;
+}
+
+.btn-switch-ingest {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  background: #081427;
+  border: 1px solid var(--border-hairline);
+  color: var(--color-nav-cyan);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-switch-ingest:hover {
+  background: #0c1f3d;
+  border-color: var(--color-nav-cyan);
+  color: #ffffff;
+}
+
+

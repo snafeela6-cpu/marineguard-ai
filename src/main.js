@@ -4,6 +4,7 @@ import { SonarViewer } from './components/sonarViewer.js';
 import { BathymetricMapViewer } from './components/mapViewer.js';
 import { sonarAudio } from './components/audioSonar.js';
 import { ReportGenerator } from './components/reportGenerator.js';
+import { SonarIngestController } from './components/sonarIngest.js';
 
 class MarineGuardApp {
   constructor() {
@@ -13,6 +14,7 @@ class MarineGuardApp {
 
     this.sonarViewer = null;
     this.mapViewer = null;
+    this.sonarIngest = null;
     this.isAnalyzing = false;
 
     this.init();
@@ -22,6 +24,7 @@ class MarineGuardApp {
     this.initMissionCommandBar();
     this.initSonarViewer();
     this.initMapViewer();
+    this.initSonarIngest();
     this.initNavigation();
     this.initToolbarControls();
     this.initPersonaSelector();
@@ -157,6 +160,113 @@ class MarineGuardApp {
     this.updateMapMissionCard(this.currentMission);
   }
 
+  /* ==========================================================================
+     SONAR ANALYSIS — INGEST SONAR DATA WORKFLOW CONTROLLER
+     ========================================================================== */
+  initSonarIngest() {
+    this.sonarIngest = new SonarIngestController({
+      onIngestionComplete: (ingestState) => {
+        this.handleIngestionCompleted(ingestState);
+      },
+      onProceedToAi: (ingestState) => {
+        this.navigateToAiDetection(ingestState);
+      },
+      onFileChanged: (ingestState) => {
+        this.syncActiveIngestBanner(ingestState);
+      }
+    });
+
+    // Jump from active banner in AI view back to Sonar Analysis ingest view
+    const btnReopenIngest = document.getElementById('btn-reopen-ingest');
+    if (btnReopenIngest) {
+      btnReopenIngest.addEventListener('click', () => {
+        sonarAudio.playClick();
+        const tabIngest = document.getElementById('tab-ingest');
+        if (tabIngest) tabIngest.click();
+      });
+    }
+
+    // Initial sync of banner
+    this.syncActiveIngestBanner(this.sonarIngest.state);
+  }
+
+  syncActiveIngestBanner(ingestState) {
+    if (!ingestState) return;
+    const bannerName = document.getElementById('banner-survey-name');
+    const bannerFile = document.getElementById('banner-survey-file');
+    const bannerSize = document.getElementById('banner-survey-size');
+    const bannerPill = document.getElementById('banner-survey-status-pill');
+
+    if (bannerName) bannerName.textContent = ingestState.surveyName;
+    if (bannerFile) bannerFile.textContent = ingestState.fileName;
+    if (bannerSize) bannerSize.textContent = ingestState.fileSize;
+
+    if (bannerPill) {
+      if (ingestState.status === 'completed' || ingestState.isIngested) {
+        bannerPill.textContent = 'SONAR DATA READY';
+        bannerPill.style.background = 'rgba(16, 185, 129, 0.12)';
+        bannerPill.style.color = 'var(--color-status-emerald)';
+        bannerPill.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+      } else {
+        bannerPill.textContent = 'INGESTION ACTIVE';
+        bannerPill.style.background = 'rgba(56, 189, 248, 0.1)';
+        bannerPill.style.color = 'var(--color-nav-cyan)';
+        bannerPill.style.borderColor = 'rgba(56, 189, 248, 0.25)';
+      }
+    }
+  }
+
+  handleIngestionCompleted(ingestState) {
+    this.syncActiveIngestBanner(ingestState);
+
+    // Update Mission Command Strip with active ingested survey
+    const cmdName = document.getElementById('cmd-mission-name');
+    const cmdSonar = document.getElementById('cmd-sonar');
+    const cmdCoverage = document.getElementById('cmd-coverage');
+    const cmdQuality = document.getElementById('cmd-quality');
+
+    if (cmdName) cmdName.textContent = `${ingestState.surveyName} | SSS Swath Active`;
+    if (cmdSonar) cmdSonar.textContent = '450 kHz SSS';
+    if (cmdCoverage) cmdCoverage.textContent = ingestState.metrics.surveyLength;
+    if (cmdQuality) cmdQuality.textContent = '96%';
+
+    // If custom image file was selected and loaded, pass to sonarViewer
+    if (ingestState.customImageElement && this.sonarViewer) {
+      const customDs = {
+        id: "mission-custom-ingest",
+        name: `${ingestState.surveyName}: Ingested Sonar Data`,
+        code: "INGEST-SSS",
+        targetType: "Side-Scan Sonar Targets",
+        image: ingestState.customImageElement.src,
+        location: "Survey Transect Corridor",
+        coordinates: { lat: 54.705, lon: 2.262 },
+        coordsFormatted: "54° 42' 18\" N, 02° 15' 44\" E",
+        depth: 45.0,
+        altitude: 8.5,
+        swathWidth: 100,
+        frequency: "450 kHz Dual-Chirp",
+        towSpeed: 3.2,
+        surveyDate: new Date().toISOString().replace('T', ' ').substring(0, 16) + ' UTC',
+        vessel: "R/V Ocean Sentinel (AUV Nautilus-X4)",
+        operator: "Hydrographic Survey Unit",
+        status: "INGESTION VERIFIED",
+        threatLevel: "critical",
+        summary: `Ingested side-scan survey file ${ingestState.fileName} (${ingestState.fileSize}). Calibrated 450 kHz acoustic backscatter swath.`,
+        detections: this.currentMission.detections,
+        bathymetryStats: this.currentMission.bathymetryStats
+      };
+      this.sonarViewer.loadDataset(customDs);
+    }
+  }
+
+  navigateToAiDetection(ingestState) {
+    this.syncActiveIngestBanner(ingestState);
+    const tabSonar = document.getElementById('tab-sonar');
+    if (tabSonar) {
+      tabSonar.click();
+    }
+  }
+
   initNavigation() {
     const navButtons = document.querySelectorAll('.nav-tab-btn');
     const viewPanels = document.querySelectorAll('.view-panel');
@@ -175,7 +285,12 @@ class MarineGuardApp {
         }
 
         // Trigger resize on canvas when made visible
-        if (targetViewId === 'view-sonar' && this.sonarViewer) {
+        if (targetViewId === 'view-ingest' && this.sonarIngest) {
+          setTimeout(() => {
+            this.sonarIngest.resizeCanvas();
+            this.sonarIngest.drawAuthenticSonarPreview();
+          }, 50);
+        } else if (targetViewId === 'view-sonar' && this.sonarViewer) {
           setTimeout(() => {
             this.sonarViewer.resizeCanvas();
             this.sonarViewer.render();
@@ -794,7 +909,12 @@ class MarineGuardApp {
 
     btnOpenUpload.addEventListener('click', () => {
       sonarAudio.playClick();
-      modalUpload.classList.add('open');
+      const tabIngest = document.getElementById('tab-ingest');
+      if (tabIngest) {
+        tabIngest.click();
+      } else {
+        modalUpload.classList.add('open');
+      }
     });
 
     btnCloseUpload.addEventListener('click', () => modalUpload.classList.remove('open'));
@@ -817,6 +937,9 @@ class MarineGuardApp {
     dropzone.addEventListener('drop', (e) => {
       const files = e.dataTransfer.files;
       if (files.length > 0) {
+        if (this.sonarIngest) {
+          this.sonarIngest.handleFileSelected(files[0]);
+        }
         this.handleIngestFile(files[0]);
         modalUpload.classList.remove('open');
       }
@@ -824,6 +947,9 @@ class MarineGuardApp {
 
     fileInput.addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
+        if (this.sonarIngest) {
+          this.sonarIngest.handleFileSelected(e.target.files[0]);
+        }
         this.handleIngestFile(e.target.files[0]);
         modalUpload.classList.remove('open');
       }
